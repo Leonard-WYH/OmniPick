@@ -1,0 +1,40 @@
+"""State names for the shelf-picking mission."""
+
+from enum import Enum, auto
+
+class CycleState(Enum):
+    WAIT_COMMAND = auto()
+    NAV_E_SCAN = auto()
+    WAIT_E_SCAN_NAV = auto()
+    HANDOFF_PICK_CONTROL = auto()
+    STOP_E_SCAN = auto()
+    SEARCH_E = auto()
+    DEPLOY_TEMPLATE = auto()
+    FINE_APPROACH = auto()
+    GRASP = auto()
+    LIFT = auto()
+    RETREAT = auto()
+    STOP_RETREAT = auto()
+    STOW_PICK_ARMS_TOGETHER = auto()
+    SET_CARRY_FOOTPRINT = auto()
+    TISSUE_PRETURN = auto()
+    STOP_TISSUE_PRETURN = auto()
+    NAV_TABLE = auto()
+    WAIT_TABLE_NAV = auto()
+    RETRY_TABLE_CHASSIS_FOOTPRINT = auto()
+    STOP_TABLE = auto()
+    RESTORE_TABLE_FOOTPRINT = auto()
+    RESTORE_TABLE_CARRY = auto()
+    PLACE_ADVANCE = auto()
+    PLACE_LOWER = auto()
+    PLACE_RELEASE = auto()
+    PLACE_RELEASE_LIFT = auto()
+    RETREAT_TABLE = auto()
+    STOP_TABLE_RETREAT = auto()
+    FINAL_STATIONARY_RESTORE = auto()
+    RESTORE_RETURN_FOOTPRINT = auto()
+    DONE = auto()
+    STOPPED = auto()
+    FAILED = auto()
+
+__all__ = ["CycleState"]

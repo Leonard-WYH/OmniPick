@@ -1,0 +1,33 @@
+<!--
+  中文说明：纸巾双手夹持时专用的安全导航行为树。全局路径每 4 秒（0.25 Hz）
+  重算一次；所有底盘运动只允许由受限速的 FollowPath 产生。这里故意不使用
+  Spin/BackUp，避免它们绕过纸巾专用速度上限并把靠摩擦夹持的纸巾甩掉。
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateTissueRecovery">
+      <PipelineSequence name="NavigateTissueWithReplanning">
+        <RateController hz="0.25">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="TissueRecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="TissueRecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </Sequence>
+          <Wait wait_duration="3"/> <!-- 恢复阶段保持静止 3 s -->
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

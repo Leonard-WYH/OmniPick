@@ -1,0 +1,225 @@
+# 中文说明：MPPI 局部控制器覆盖配置，仅在 CONTROLLER=mppi 时叠加到
+# nav2_params.yaml。共享 Nav2/代价地图参数仍以 nav2_params.yaml 为准。
+# 本文件的 time_steps × model_dt 是预测时间窗，并不会让机器人原地等待。
+
+controller_server:
+  ros__parameters:
+    controller_plugins: [FollowPath]
+
+    FollowPath:
+      plugin: nav2_mppi_controller::MPPIController
+
+      #########################################################################
+      # MPPI 核心采样与预测参数
+      #########################################################################
+
+      # Controller server runs at 10 Hz.
+      # Humble MPPI 1.1.20: model_dt = 0.1 s is appropriate here.
+      time_steps: 30  # 每条候选轨迹预测 30 个离散步
+      model_dt: 0.1   # 每步 0.1 s，因此总预测时间窗为 3.0 s
+
+      batch_size: 1000
+      iteration_count: 1
+
+      temperature: 0.3
+      gamma: 0.015
+
+      retry_attempt_limit: 1
+      reset_period: 1.0  # 优化器内部状态周期性复位间隔（秒），不是停车等待
+      regenerate_noises: false
+
+      #########################################################################
+      # 差速底盘运动模型与速度上限
+      #########################################################################
+
+      motion_model: DiffDrive
+
+      # 不能用 3.5 m/s 直接充当采样上限：配合 3 s 预测窗会把候选轨迹
+      # 推到 10.5 m 外，需要至少约 22 m 的局部图，而且远超此底盘在
+      # 10 Hz 闭环下的有效跟随速度。这里采用匹配式提速：0.65 m/s 在
+      # 3 s 内最远走 1.95 m，完整保留在 6 m 局部图的 3 m 半径以内。
+      vx_max: 0.75 #0.65
+      vx_min: 0.0
+
+      # No lateral velocity for differential drive.
+      vy_max: 0.0
+
+      # 0.65 / 1.60 = 0.406 m 的最小同比例转弯半径，接近提速前
+      # 0.45 / 1.20 = 0.375 m；提高线速度的同时保留窄通道纠偏能力。
+      wz_max: 1.8 #1.6
+
+      #########################################################################
+      # 采样噪声：越大则搜索动作范围越大，但控制可能更抖
+      #########################################################################
+
+      vx_std: 0.2 #0.12
+      vy_std: 0.0
+      wz_std: 0.45 #0.35
+
+      #########################################################################
+      # 路径裁剪与 TF 时间容忍
+      #########################################################################
+
+      prune_distance: 1.5
+      transform_tolerance: 0.30  # MPPI 接受的 TF 时间误差上限（秒）
+
+      # Humble 1.1.20 exposes the optimized local trajectory only through its
+      # visualization MarkerArray.  The MPPI-only launch adapter filters the
+      # "Optimal Trajectory" markers and republishes them as /local_plan Path.
+      visualize: true
+
+      TrajectoryVisualizer:
+        # The adapter does not use candidate trajectories.  Downsample them to
+        # one marker to avoid flooding DDS while retaining all 30 optimal points.
+        trajectory_step: 1000
+        time_step: 30
+
+      #########################################################################
+      # 轨迹评分器列表
+      #########################################################################
+
+      critics:
+        - ConstraintCritic
+        - CostCritic
+        - GoalCritic
+        - GoalAngleCritic
+        - PathAlignCritic
+        - PathFollowCritic
+        - PathAngleCritic
+        - PreferForwardCritic
+
+      #########################################################################
+      # ConstraintCritic
+      #########################################################################
+
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+
+      #########################################################################
+      # CostCritic
+      #
+      # Keep footprint-aware collision checking enabled.
+      #########################################################################
+
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        # 降低的只是致命障碍外围的软膨胀代价；真实足迹碰撞仍然
+        # 使用下面的百万级代价禁止。这允许底盘轻微进入膨胀带继续走。
+        cost_weight: 2.50
+
+        critical_cost: 300.0
+        collision_cost: 1000000.0
+
+        consider_footprint: true
+
+        near_goal_distance: 0.5
+
+        inflation_layer_name: inflation_layer
+
+      #########################################################################
+      # GoalCritic
+      #
+      # Position attraction near the target.
+      #########################################################################
+
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+
+        # Current maximum-distance prediction horizon:
+        # 30 * 0.1 * 0.65 = 1.95 m，保持在 6 m 局部地图可见范围内。
+        threshold_to_consider: 0.8
+
+      #########################################################################
+      # GoalAngleCritic
+      #
+      # IMPORTANT:
+      # Do care about final orientation, but only when already close to goal.
+      #
+      # Previous 0.5 m caused the robot to begin correcting yaw too early.
+      #########################################################################
+
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        threshold_to_consider: 0.20
+
+      #########################################################################
+      # PathAlignCritic
+      #
+      # Keeps robot trajectory reasonably aligned with the global path.
+      #########################################################################
+
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+
+        cost_weight: 14.0
+
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 3
+
+        # Stop strongly forcing path alignment close to goal.
+        threshold_to_consider: 0.35
+
+        offset_from_furthest: 20
+
+        use_path_orientations: false
+
+      #########################################################################
+      # PathFollowCritic
+      #
+      # Keeps the robot progressing along the global path.
+      #########################################################################
+
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+
+        # 稍微增加沿全局路径继续向前的权重，避免软代价带里
+        # “停在原地”比“继续通过”得分更好。
+        cost_weight: 6.5
+
+        offset_from_furthest: 5
+
+        threshold_to_consider: 0.8
+
+      #########################################################################
+      # PathAngleCritic
+      #
+      # Controls heading relative to the path while driving.
+      # This is different from GoalAngleCritic.
+      #########################################################################
+
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+
+        cost_weight: 2.0
+
+        offset_from_furthest: 4
+
+        # Do not let path-angle alignment dominate too early near the goal.
+        threshold_to_consider: 0.20
+
+        max_angle_to_furthest: 1.0
+
+        forward_preference: true
+
+      #########################################################################
+      # PreferForwardCritic
+      #########################################################################
+
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+
+        cost_weight: 5.0
+
+        # Disable forward preference very close to goal so rotation is easier.
+        threshold_to_consider: 0.35

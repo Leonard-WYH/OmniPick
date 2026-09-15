@@ -1,0 +1,20 @@
+# 中文说明：任务航点都位于仿真的真实 odom 坐标系。
+# Python 状态机不硬编码这些航点；在 RViz 实测后只需修改本文件。
+
+pick_approach:
+  frame_id: odom
+  # Verified Baseline endpoint: APPROACH_BASE_X / YELLOW_MID_Y / GRASP_YAW.
+  x: 0.8 #0.852
+  y: 2.475
+  yaw: 1.378810109
+  needs_tuning: false
+
+left_goal:
+  frame_id: odom
+  # Official Server client's verified ROUTE_TO_TABLE endpoint.  It is inside
+  # referee delivery_base S4 and faces south, but Nav2 tolerances and carried-
+  # arm clearance still need a cautious first dynamic validation.
+  x: -1.880
+  y: -2.800
+  yaw: -1.570796327
+  needs_tuning: false

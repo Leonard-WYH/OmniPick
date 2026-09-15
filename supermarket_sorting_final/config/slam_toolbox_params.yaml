@@ -1,0 +1,69 @@
+# 中文说明：slam_toolbox 在线异步建图配置。这里的周期只影响建图/TF
+# 刷新，不是机械臂动作等待；每次启动都从空地图开始。
+slam_toolbox:
+  ros__parameters:
+    use_sim_time: false
+
+    # Solver settings from the installed Humble 2.6.10 online-async example.
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
+    ceres_preconditioner: SCHUR_JACOBI
+    ceres_trust_strategy: LEVENBERG_MARQUARDT
+    ceres_dogleg_type: TRADITIONAL_DOGLEG
+    ceres_loss_function: None
+
+    # Start a fresh online map every process start.  No map file is loaded and
+    # no map saver is started or used by this project.
+    mode: mapping
+    use_map_saver: false
+    map_frame: map
+    odom_frame: odom
+    base_frame: base_link
+    scan_topic: /slamware_ros_sdk_server_node/scan
+
+    debug_logging: false
+    throttle_scans: 1
+    transform_publish_period: 0.02  # 每 0.02 s 发布一次 map->odom（50 Hz）
+    map_update_interval: 5.0        # 每 5 s 更新一次占据栅格地图
+    resolution: 0.05
+    min_laser_range: 0.0
+    max_laser_range: 12.0
+    minimum_time_interval: 0.5  # 相邻两次纳入建图的激光时间至少间隔 0.5 s
+    transform_timeout: 0.2      # 查询 TF 最多容忍 0.2 s
+    tf_buffer_duration: 30.0    # 保存最近 30 s 的 TF 历史
+    stack_size_to_use: 40000000
+    enable_interactive_mode: false
+
+    use_scan_matching: true
+    use_scan_barycenter: true
+    minimum_travel_distance: 0.5
+    minimum_travel_heading: 0.5
+    scan_buffer_size: 10
+    scan_buffer_maximum_scan_distance: 10.0
+    link_match_minimum_response_fine: 0.1
+    link_scan_maximum_distance: 1.5
+    loop_search_maximum_distance: 3.0
+    do_loop_closing: true
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
+    loop_match_minimum_response_fine: 0.45
+
+    correlation_search_space_dimension: 0.5
+    correlation_search_space_resolution: 0.01
+    correlation_search_space_smear_deviation: 0.1
+
+    loop_search_space_dimension: 8.0
+    loop_search_space_resolution: 0.05
+    loop_search_space_smear_deviation: 0.03
+
+    distance_variance_penalty: 0.5
+    angle_variance_penalty: 1.0
+    fine_search_angle_offset: 0.00349
+    coarse_search_angle_offset: 0.349
+    coarse_angle_resolution: 0.0349
+    minimum_angle_penalty: 0.9
+    minimum_distance_penalty: 0.5
+    use_response_expansion: true
+    min_pass_through: 2
+    occupancy_threshold: 0.1

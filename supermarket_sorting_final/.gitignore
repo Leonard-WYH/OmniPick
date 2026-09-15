@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.idea/
+.vscode/
+logs/
+mission_total_time.txt
+weights/*.engine

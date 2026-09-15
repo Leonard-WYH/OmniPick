@@ -1,0 +1,25 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime and training outputs
+**/logs/
+**/runs/
+**/dataset/
+**/datasets/
+**/.cache/
+supermarket_sorting_final/mission_total_time.txt
+YOLO_training/my_baseline/examples/supermarket_sorting/perception/checkpoints/
+
+# Large, machine-specific artifacts
+images/*.tar
+supermarket_sorting_final/weights/*.engine
