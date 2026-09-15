@@ -7,7 +7,7 @@ Nav2、Baseline 或 Docker 镜像。
 ## 默认生成
 
 ```bash
-cd ~/market_game/YOLO_training
+cd ~/OmniPick/YOLO_training
 ./generate_dataset.sh
 ```
 
@@ -52,7 +52,7 @@ GS 特征渲染。每个像素解码为可见商品实例，再从有效实例�
 训练结束并生成 `perception/checkpoints/products.pt` 后，运行：
 
 ```bash
-cd ~/market_game/YOLO_training
+cd ~/OmniPick/YOLO_training
 ./test_yolo.sh
 ```
 

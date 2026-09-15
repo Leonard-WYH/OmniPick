@@ -36,7 +36,7 @@
 在工作区根目录执行：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 ./run_final_test.sh --check
 ```
 
@@ -58,7 +58,7 @@ cd ~/market_game
 ## 4. 启动正式任务
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 RUN_MODE=random_cycle \
 CONTROLLER=mppi \
 ENABLE_RANDOM_OBSTACLES=1 \
@@ -93,7 +93,7 @@ ros2 topic echo /supermarket_sorting/mission_status
 停止本项目创建的容器：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 ./run_final_test.sh --stop
 ```
 
@@ -231,7 +231,7 @@ supermarket_sorting_final/logs/<RUN_ID>/
 在具备 ROS/Python 依赖的环境中执行：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 PYTHONPATH="supermarket_sorting_final/src:${PYTHONPATH:-}" \
 python3 -m unittest discover \
   -s supermarket_sorting_final/tests \

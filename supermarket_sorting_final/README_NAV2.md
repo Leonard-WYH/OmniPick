@@ -8,7 +8,7 @@
 只验证建图和导航：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 RUN_MODE=nav_only CONTROLLER=mppi ENABLE_RANDOM_OBSTACLES=1 ./run_final_test.sh
 ```
 

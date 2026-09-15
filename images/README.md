@@ -6,7 +6,7 @@
 下载。
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 hf download Leonard-WYH/OmniPick-Docker-Image \
   supermarket_sorting_server.tar \
   supermarket_sorting_client-nav2.tar \

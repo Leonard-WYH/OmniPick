@@ -6,7 +6,7 @@ The default run performs two checks:
 1. Evaluate the complete validation split and save the Ultralytics plots.
 2. Randomly sample validation images and save ground-truth/prediction comparisons.
 
-Run this script through ``~/market_game/YOLO_training/test_yolo.sh`` so
+Run this script through ``~/OmniPick/YOLO_training/test_yolo.sh`` so
 that it uses the same Docker image and dependencies as training.
 """
 

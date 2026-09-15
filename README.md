@@ -25,7 +25,7 @@ Nav2 导航 → 视觉伺服 → 抓取 → 放置
 ## 仓库结构
 
 ```text
-market_game/
+OmniPick/
 ├── run_final_test.sh             # 宿主机统一启动器
 ├── supermarket_sorting_final/    # 正式 ROS 2 导航、感知与抓放项目
 │   ├── config/ launch/ scripts/
@@ -44,10 +44,10 @@ market_game/
 - X11、`xhost` 和 `gnome-terminal`；
 - 建议至少预留 50 GB 磁盘空间。
 
-将仓库克隆或解压为当前用户主目录下的 `market_game`，后续命令统一从这里执行：
+将仓库克隆或解压为当前用户主目录下的 `OmniPick`，后续命令统一从这里执行：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 ```
 
 ## Docker 镜像
@@ -60,7 +60,7 @@ cd ~/market_game
 
 ```bash
 python3 -m pip install -U "huggingface_hub[cli]"
-cd ~/market_game
+cd ~/OmniPick
 hf download Leonard-WYH/OmniPick-Docker-Image \
   supermarket_sorting_server.tar \
   supermarket_sorting_client-nav2.tar \
@@ -83,7 +83,7 @@ docker image ls | grep supermarket_sorting
 先做只读检查：
 
 ```bash
-cd ~/market_game
+cd ~/OmniPick
 chmod +x run_final_test.sh
 ./run_final_test.sh --check
 ```
@@ -127,7 +127,7 @@ ros2 topic pub -r 1 \
 生成合成数据集：
 
 ```bash
-cd ~/market_game/YOLO_training
+cd ~/OmniPick/YOLO_training
 chmod +x generate_dataset.sh test_yolo.sh
 ./generate_dataset.sh
 ```
