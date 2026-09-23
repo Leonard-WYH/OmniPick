@@ -22,11 +22,27 @@ YOLO + ArUco + 在线 SLAM
 Nav2 导航 → 视觉伺服 → 抓取 → 放置
 ```
 
+## 项目演示
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="pictures/grasp.gif" alt="机器人视觉伺服抓取商品" width="100%"><br>
+      <strong>视觉伺服与商品抓取</strong>
+    </td>
+    <td width="50%" align="center">
+      <img src="pictures/transport.gif" alt="机器人自主导航运输商品" width="100%"><br>
+      <strong>自主导航与商品运输</strong>
+    </td>
+  </tr>
+</table>
+
 ## 仓库结构
 
 ```text
 OmniPick/
 ├── run_final_test.sh             # 宿主机统一启动器
+├── pictures/                     # README 项目演示动图
 ├── supermarket_sorting_final/    # 正式 ROS 2 导航、感知与抓放项目
 │   ├── config/ launch/ scripts/
 │   ├── src/supermarket_sorting_nav2/
