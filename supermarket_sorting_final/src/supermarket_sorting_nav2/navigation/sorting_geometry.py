@@ -111,8 +111,8 @@ SHELF_SCAN_POSES = {
 # 后续抓取边缘列商品时，让底盘观察点先随商品所在列横移。这样视觉伺服
 # 接管前，夹爪与商品已经大致处于同一条前进线上，不必在近柜阶段承担过大
 # 的横向纠偏。左列保持 18 cm；右列按最新实测加大到 25 cm，补偿右侧商品
-# 仍会向左抓偏的问题。首件 E 柜直达流程由上层显式关闭该偏移，继续使用
-# 已经验证过的固定观察点。
+# 仍会向左抓偏的问题。首件 E 柜直达流程也在识别到具体货位后使用同一
+# 列偏移，使高速直控目标与实际待抓商品对齐。
 LEFT_COLUMN_OBSERVATION_X_OFFSET_M = 0.18
 RIGHT_COLUMN_OBSERVATION_X_OFFSET_M = 0.25
 
@@ -152,9 +152,10 @@ FIXED_GRASP_ARM = np.array(
 )
 HAND_Z_PLUS_SLIDE_M = 1.330
 DEPLOY_BELOW_PRODUCT_CENTER_M = 0.010
-# 上层（L3）双臂夹持时，夹爪碰撞几何会比末端中心向下多伸出一段。
-# 若仍把末端中心放在包装几何中心，向前接近时下缘会先碰到上层货架板。
-# 只对 L3 双臂夹持抬高 2 cm；中、下层保持原来的中心夹持高度。
+# 双臂夹持纸巾时，夹爪碰撞几何会比末端中心向下多伸出一段。L1 实测
+# 两只手向前伸入时会卡到下层隔板，因此单独把末端中心抬高 1.5 cm；
+# L3 保留已经验证的 2 cm 上提量，L2 继续按包装中心夹取。
+TISSUE_L1_GRASP_ABOVE_CENTER_M = 0.015
 TISSUE_L3_GRASP_ABOVE_CENTER_M = 0.020
 # The collision mesh of each open finger extends about 30 mm below the endpoint.
 # Gum and fruit centres are only 35-40 mm above the shelf, so the normal
@@ -447,15 +448,16 @@ def grasp_height_offset_for_product(
         raise ValueError(f"unsupported E-shelf product kind: {product_kind}")
     # The two closed grippers contact the left/right faces of the wide package;
     # centring their pads vertically leaves shelf clearance below and equal
-    # support above.  On L3 the lower finger collision geometry needs extra
-    # clearance over the shelf board, while L1/L2 retain the proven centre
-    # grasp.  The single-hand template offsets below do not apply.
+    # support above.  The lower finger collision geometry needs extra board
+    # clearance on L1 and L3; L2 retains the proven centre grasp.  The
+    # single-hand template offsets below do not apply.
     if kind == "zhijin":
-        return (
-            TISSUE_L3_GRASP_ABOVE_CENTER_M
-            if str(shelf_level).strip().upper() == "L3"
-            else 0.0
-        )
+        level = str(shelf_level).strip().upper()
+        if level == "L1":
+            return TISSUE_L1_GRASP_ABOVE_CENTER_M
+        if level == "L3":
+            return TISSUE_L3_GRASP_ABOVE_CENTER_M
+        return 0.0
     if kind == "chengzi":
         return CHENGZI_GRASP_ABOVE_CENTER_M
     if kind in RAISED_GRASP_PRODUCT_KINDS:

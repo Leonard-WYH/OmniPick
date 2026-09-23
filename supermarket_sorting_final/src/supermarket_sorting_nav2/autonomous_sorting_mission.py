@@ -4,7 +4,7 @@
 This is an explicitly commanded integration-test mission.  It does not replace
 the official five-item order topic.  Nav2 owns long travel; the Baseline owns
 the observation-point-to-shelf approach and retreat.  There is deliberately no
-per-product Nav2 pick waypoint: after the fixed E observation locks a target,
+per-product Nav2 pick waypoint: after the shelf observation locks a target,
 the grasp posture is deployed and the chassis advances while continuously
 correcting lateral alignment.  Every product uses its calibrated grasp,
 transport and placement profile.  The observation is retained as an
@@ -100,6 +100,7 @@ from .navigation.sorting_geometry import (
     TABLE_TOP_Z_M,
     TABLE_Y_MIN_M,
     TISSUE_HALF_WIDTH_M,
+    TISSUE_L1_GRASP_ABOVE_CENTER_M,
     TISSUE_L3_GRASP_ABOVE_CENTER_M,
     bottle_geometry,
     cluster_points,

@@ -706,6 +706,7 @@ class EProductCycleSchedulerMixin:
     ) -> None:
         """Drive quickly toward E, then hand straight to the visual grasp."""
 
+        pose = self._update_first_e_direct_column_target(pose)
         linear, angular, distance, yaw_error, arrived = (
             _first_e_direct_velocity_command(
                 self.base_xy, self.base_yaw, pose
@@ -766,6 +767,35 @@ class EProductCycleSchedulerMixin:
                 "first_e_direct_observation_pose_reached",
             )
 
+    def _update_first_e_direct_column_target(
+        self, fallback_pose: tuple[float, float, float]
+    ) -> tuple[float, float, float]:
+        """Lock the first E direct-drive goal to the selected product column."""
+
+        if self._random_planned_marker_id is not None:
+            return tuple(float(value) for value in fallback_pose)
+        selected = self._active_shelf_pick_candidate()
+        if selected is None or str(selected.get("shelf", "")).upper() != "E":
+            return tuple(float(value) for value in fallback_pose)
+        try:
+            marker_id = int(selected["aruco_id"])
+        except (KeyError, TypeError, ValueError):
+            return tuple(float(value) for value in fallback_pose)
+
+        pose = shelf_target_observation_pose(
+            "E", marker_id, shift_edge_columns=True
+        )
+        self._random_planned_marker_id = marker_id
+        self._random_planned_kind = str(selected.get("kind", "")).lower() or None
+        self._random_active_scan_pose = pose
+        self.get_logger().info(
+            "FIRST_E_DIRECT_COLUMN_TARGET "
+            f"marker_id={marker_id} "
+            f"column={selected.get('column', 'unknown')} "
+            f"goal=({pose[0]:.3f},{pose[1]:.3f},{pose[2]:.3f})"
+        )
+        return pose
+
     def _next_random_scan_shelf(self) -> str | None:
         for shelf in self._random_scan_order():
             if (
@@ -821,15 +851,14 @@ class EProductCycleSchedulerMixin:
         self._search_points.clear()
         self._search_detection_frames = 0
         self._search_last_frame_at = None
-        # The very first E run keeps its validated straight-line goal.  Every
-        # later route with a concrete inventory slot shifts the observation
-        # point toward C1/C3, so visual servo starts nearly in line with the
-        # product rather than correcting a large lateral error beside the rack.
-        first_e_pick_route = bool(self._picked_count == 0 and shelf == "E")
+        # Every route with a concrete inventory slot, including the first E
+        # route, shifts the observation point toward C1/C3.  If the first route
+        # starts before a marker is known, the direct-drive loop updates this
+        # pose as soon as en-route vision identifies the selected product.
         pose = shelf_target_observation_pose(
             shelf,
             marker_id,
-            shift_edge_columns=not first_e_pick_route,
+            shift_edge_columns=True,
         )
         self._random_active_scan_pose = pose
         fixed_pose = shelf_scan_pose(shelf)

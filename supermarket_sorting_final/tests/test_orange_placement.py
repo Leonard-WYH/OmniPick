@@ -194,8 +194,8 @@ class OrangePlacementTests(unittest.TestCase):
                     cycle.CHENGZI_TABLE_RELEASE_CLEARANCE_M, places=5,
                 )
 
-    def test_only_upper_shelf_tissue_grasp_is_raised(self):
-        """L3 paper pack clears the shelf without perturbing proven lower rows."""
+    def test_edge_shelf_tissue_grasps_are_raised(self):
+        """L1/L3 paper packs clear their boards while L2 stays centred."""
 
         slides = {
             level: cycle.grasp_slide_for_product_z(
@@ -214,7 +214,8 @@ class OrangePlacementTests(unittest.TestCase):
             cycle.TISSUE_L3_GRASP_ABOVE_CENTER_M,
         )
         self.assertAlmostEqual(
-            cycle.grasp_height_offset_for_product("zhijin", "L1"), 0.0
+            cycle.grasp_height_offset_for_product("zhijin", "L1"),
+            cycle.TISSUE_L1_GRASP_ABOVE_CENTER_M,
         )
         self.assertAlmostEqual(
             cycle.grasp_height_offset_for_product("zhijin", "L2"), 0.0
@@ -222,6 +223,14 @@ class OrangePlacementTests(unittest.TestCase):
         self.assertAlmostEqual(
             cycle.grasp_height_offset_for_product("zhijin", "L3"),
             cycle.TISSUE_L3_GRASP_ABOVE_CENTER_M,
+        )
+        self.assertAlmostEqual(
+            slides["L2"] - slides["L1"],
+            (
+                cycle.e_product_center_z("L1", "zhijin")
+                - cycle.e_product_center_z("L2", "zhijin")
+                + cycle.TISSUE_L1_GRASP_ABOVE_CENTER_M
+            ),
         )
 
     def test_missing_or_invalid_grasp_geometry_cannot_calibrate(self):

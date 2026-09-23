@@ -86,7 +86,7 @@ class RandomShelfGeometryTests(unittest.TestCase):
             )
             self.assertAlmostEqual(pose[2], math.pi / 2.0)
 
-    def test_known_edge_columns_shift_later_observation_pose(self):
+    def test_known_edge_columns_shift_every_observation_pose(self):
         for shelf in SHELF_NAMES:
             fixed = shelf_scan_pose(shelf)
             first_id = SHELF_FIRST_ARUCO_ID[shelf]
@@ -104,7 +104,18 @@ class RandomShelfGeometryTests(unittest.TestCase):
             self.assertEqual(left[1:], fixed[1:])
             self.assertEqual(right[1:], fixed[1:])
 
-    def test_unknown_slot_and_first_e_override_keep_fixed_pose(self):
+        e_first_id = SHELF_FIRST_ARUCO_ID["E"]
+        self.assertAlmostEqual(
+            shelf_target_observation_pose("E", e_first_id)[0], 1.520
+        )
+        self.assertAlmostEqual(
+            shelf_target_observation_pose("E", e_first_id + 1)[0], 1.700
+        )
+        self.assertAlmostEqual(
+            shelf_target_observation_pose("E", e_first_id + 2)[0], 1.950
+        )
+
+    def test_unknown_slot_and_explicit_no_shift_keep_fixed_pose(self):
         fixed = shelf_scan_pose("E")
         self.assertEqual(shelf_target_observation_pose("E", None), fixed)
         self.assertEqual(
@@ -492,6 +503,38 @@ class RandomShelfPriorityTests(unittest.TestCase):
         self.robot._first_e_direct_used = False
         self.robot._picked_count = 1
         self.assertFalse(self.robot._should_use_first_e_direct_drive("E"))
+
+    def test_first_e_direct_target_locks_to_detected_product_column(self):
+        fixed = shelf_scan_pose("E")
+        first_id = SHELF_FIRST_ARUCO_ID["E"]
+        expected_x = (1.520, 1.700, 1.950)
+        for column_index, target_x in enumerate(expected_x):
+            with self.subTest(column=column_index + 1):
+                marker_id = first_id + column_index
+                selected = {
+                    **self.candidate("E", marker_id),
+                    "kind": "kele",
+                    "column": f"C{column_index + 1}",
+                }
+                self.robot._random_planned_marker_id = None
+                self.robot._random_planned_kind = None
+                self.robot._random_active_scan_pose = fixed
+                self.robot._active_shelf_pick_candidate = Mock(
+                    return_value=selected
+                )
+                self.robot.get_logger = Mock(return_value=Mock())
+
+                pose = self.robot._update_first_e_direct_column_target(fixed)
+
+                self.assertAlmostEqual(pose[0], target_x)
+                self.assertEqual(pose[1:], fixed[1:])
+                self.assertEqual(
+                    self.robot._random_active_scan_pose, pose
+                )
+                self.assertEqual(
+                    self.robot._random_planned_marker_id, marker_id
+                )
+                self.assertEqual(self.robot._random_planned_kind, "kele")
 
     def test_narrow_cylinders_keep_live_alignment_and_grasp_deeper(self):
         self.assertAlmostEqual(

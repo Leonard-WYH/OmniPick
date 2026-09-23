@@ -357,7 +357,7 @@ class EProductCycleMotionMixin:
             self._fail("return_navigation_footprint_rejected")
 
     def _start_concurrent_search_restore(self) -> None:
-        """Restore both waiting arms while the fixed E observation is running."""
+        """Restore both waiting arms while the E observation is running."""
 
         self.tc[11] = GRIP_OPEN
         self.tc[18] = GRIP_OPEN
